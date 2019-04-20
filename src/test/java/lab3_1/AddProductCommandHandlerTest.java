@@ -11,13 +11,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
-import java.util.Date;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.internal.util.reflection.Whitebox;
 
-import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
 import pl.com.bottega.ecommerce.sales.application.api.command.AddProductCommand;
 import pl.com.bottega.ecommerce.sales.application.api.handler.AddProductCommandHandler;
@@ -44,6 +43,13 @@ public class AddProductCommandHandlerTest {
     private AddProductCommand productCommand;
     private Client client;
 
+    private static ReservationBuilder reservationBuilder;
+
+    @BeforeClass
+    public static void initialize() {
+        reservationBuilder = new ReservationBuilder();
+    }
+
     @Before
     public void setUp() {
         productHandler = new AddProductCommandHandler();
@@ -66,7 +72,9 @@ public class AddProductCommandHandlerTest {
 
     @Test
     public void testIfProductAndReservationRepositoriesWereCalledOnce() {
-        Reservation reservation = new Reservation(Id.generate(), ReservationStatus.OPENED, new ClientData(), new Date());
+        Reservation reservation = reservationBuilder.addId(Id.generate())
+                                                    .addStatus(ReservationStatus.OPENED)
+                                                    .createReservation();
         when(reservationRepository.load(any(Id.class))).thenReturn(reservation);
 
         Product product = new Product(Id.generate(), new Money(new BigDecimal(5)), "paluszki", ProductType.FOOD);
@@ -81,7 +89,9 @@ public class AddProductCommandHandlerTest {
 
     @Test
     public void testIfProductIsActiveClientWillNotBeCalled() {
-        Reservation reservation = new Reservation(Id.generate(), ReservationStatus.OPENED, new ClientData(), new Date());
+        Reservation reservation = reservationBuilder.addId(Id.generate())
+                                                    .addStatus(ReservationStatus.OPENED)
+                                                    .createReservation();
         when(reservationRepository.load(any(Id.class))).thenReturn(reservation);
 
         Product product = new Product(Id.generate(), new Money(new BigDecimal(5)), "paluszki", ProductType.FOOD);
@@ -96,7 +106,9 @@ public class AddProductCommandHandlerTest {
 
     @Test
     public void testIfProductIsArchiveClientWillBeCalled() {
-        Reservation reservation = new Reservation(Id.generate(), ReservationStatus.OPENED, new ClientData(), new Date());
+        Reservation reservation = reservationBuilder.addId(Id.generate())
+                                                    .addStatus(ReservationStatus.OPENED)
+                                                    .createReservation();
         when(reservationRepository.load(any(Id.class))).thenReturn(reservation);
 
         Product product = new Product(Id.generate(), new Money(new BigDecimal(5)), "paluszki", ProductType.FOOD);
@@ -115,7 +127,9 @@ public class AddProductCommandHandlerTest {
 
     @Test
     public void testIfNewProductIsSuggestedIfOrderProductIsArchive() {
-        Reservation reservation = new Reservation(Id.generate(), ReservationStatus.OPENED, new ClientData(), new Date());
+        Reservation reservation = reservationBuilder.addId(Id.generate())
+                                                    .addStatus(ReservationStatus.OPENED)
+                                                    .createReservation();
         when(reservationRepository.load(any(Id.class))).thenReturn(reservation);
 
         Product product = new Product(Id.generate(), new Money(new BigDecimal(5)), "paluszki", ProductType.FOOD);
