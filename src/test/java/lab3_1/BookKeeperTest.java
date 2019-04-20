@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
@@ -35,6 +36,13 @@ public class BookKeeperTest {
     private InvoiceRequest invoiceRequest;
     private TaxPolicy taxPolicy;
 
+    private static ProductDataBuilder productBuilder;
+
+    @BeforeClass
+    public static void initialize() {
+        productBuilder = new ProductDataBuilder();
+    }
+
     @Before
     public void setUp() {
         bookKeeper = new BookKeeper(new InvoiceFactory());
@@ -44,7 +52,12 @@ public class BookKeeperTest {
 
     @Test
     public void testInvoiceRequestWithOneProductReturnOneProductInvoice() {
-        ProductData productData = new ProductData(Id.generate(), new Money(new BigDecimal(1)), "kabanos", ProductType.FOOD, new Date());
+        ProductData productData = productBuilder.addId(Id.generate())
+                                                .addPrice(new Money(new BigDecimal(1)))
+                                                .addName("kabanos")
+                                                .addProductType(ProductType.FOOD)
+                                                .addSnapshotDate(new Date())
+                                                .createProductData();
         int quantity = 10;
         RequestItem requestItem = new RequestItem(productData, quantity, productData.getPrice()
                                                                                     .multiplyBy(quantity));
@@ -64,12 +77,21 @@ public class BookKeeperTest {
 
     @Test
     public void testNumberOfCallsTaxCalculateForInvoiceRequestWithTwoProducts() {
-        ProductData productData = new ProductData(Id.generate(), new Money(new BigDecimal(1)), "kabanos", ProductType.FOOD, new Date());
+        ProductData productData = productBuilder.addId(Id.generate())
+                                                .addPrice(new Money(new BigDecimal(1)))
+                                                .addName("kabanos")
+                                                .addProductType(ProductType.FOOD)
+                                                .addSnapshotDate(new Date())
+                                                .createProductData();
         int quantity = 10;
         RequestItem requestItem = new RequestItem(productData, quantity, productData.getPrice()
                                                                                     .multiplyBy(quantity));
-        ProductData productData2 = new ProductData(Id.generate(), new Money(new BigDecimal(11)), "waciki", ProductType.STANDARD,
-                new Date());
+        ProductData productData2 = productBuilder.addId(Id.generate())
+                                                 .addPrice(new Money(new BigDecimal(11)))
+                                                 .addName("waciki")
+                                                 .addProductType(ProductType.STANDARD)
+                                                 .addSnapshotDate(new Date())
+                                                 .createProductData();
         RequestItem requestItem2 = new RequestItem(productData2, quantity - 2, productData.getPrice()
                                                                                           .multiplyBy(quantity));
         invoiceRequest.add(requestItem);
@@ -83,12 +105,21 @@ public class BookKeeperTest {
 
     @Test
     public void testInvoiceRequestWithTwoProductsReturnTwoProductsInvoice() {
-        ProductData productData = new ProductData(Id.generate(), new Money(new BigDecimal(1)), "kabanos", ProductType.FOOD, new Date());
+        ProductData productData = productBuilder.addId(Id.generate())
+                                                .addPrice(new Money(new BigDecimal(1)))
+                                                .addName("kabanos")
+                                                .addProductType(ProductType.FOOD)
+                                                .addSnapshotDate(new Date())
+                                                .createProductData();
         int quantity = 10;
         RequestItem requestItem = new RequestItem(productData, quantity, productData.getPrice()
                                                                                     .multiplyBy(quantity));
-        ProductData productData2 = new ProductData(Id.generate(), new Money(new BigDecimal(11)), "waciki", ProductType.STANDARD,
-                new Date());
+        ProductData productData2 = productBuilder.addId(Id.generate())
+                                                 .addPrice(new Money(new BigDecimal(11)))
+                                                 .addName("waciki")
+                                                 .addProductType(ProductType.STANDARD)
+                                                 .addSnapshotDate(new Date())
+                                                 .createProductData();
         RequestItem requestItem2 = new RequestItem(productData2, quantity - 2, productData.getPrice()
                                                                                           .multiplyBy(quantity));
         invoiceRequest.add(requestItem);
@@ -114,7 +145,12 @@ public class BookKeeperTest {
     public void testClientDataPassedToInvoice() {
         ClientData client = new ClientData(Id.generate(), "Pepsi");
         invoiceRequest = new InvoiceRequest(client);
-        ProductData productData = new ProductData(Id.generate(), new Money(new BigDecimal(1)), "kabanos", ProductType.FOOD, new Date());
+        ProductData productData = productBuilder.addId(Id.generate())
+                                                .addPrice(new Money(new BigDecimal(1)))
+                                                .addName("kabanos")
+                                                .addProductType(ProductType.FOOD)
+                                                .addSnapshotDate(new Date())
+                                                .createProductData();
         int quantity = 10;
         RequestItem requestItem = new RequestItem(productData, quantity, productData.getPrice()
                                                                                     .multiplyBy(quantity));
