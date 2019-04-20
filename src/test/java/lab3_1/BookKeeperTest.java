@@ -39,26 +39,29 @@ public class BookKeeperTest {
     private static ProductDataBuilder productBuilder;
     private static RequestItemBuilder requestBuilder;
     private static BookKeeperBuilder bookKeeperBuilder;
+    private static InvoiceRequestBuilder invoiceRequestBuilder;
 
     @BeforeClass
     public static void initialize() {
         productBuilder = new ProductDataBuilder();
         requestBuilder = new RequestItemBuilder();
         bookKeeperBuilder = new BookKeeperBuilder();
+        invoiceRequestBuilder = new InvoiceRequestBuilder();
     }
 
     @Before
     public void setUp() {
         bookKeeper = bookKeeperBuilder.addInvoiceFactory(new InvoiceFactory())
                                       .createBookKeeper();
-        invoiceRequest = new InvoiceRequest(new ClientData());
+        invoiceRequest = invoiceRequestBuilder.addClinet(new ClientData())
+                                              .createInvoiceRequest();
         taxPolicy = mock(TaxPolicy.class);
     }
 
     @Test
     public void testInvoiceRequestWithOneProductReturnOneProductInvoice() {
         ProductData productData = productBuilder.addId(Id.generate())
-                                                .addPrice(new Money(new BigDecimal(1)))
+                                                .addPrice(new Money(1))
                                                 .addName("kabanos")
                                                 .addProductType(ProductType.FOOD)
                                                 .addSnapshotDate(new Date())
@@ -72,7 +75,7 @@ public class BookKeeperTest {
                                                 .createRequestItem();
         invoiceRequest.add(requestItem);
 
-        when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(new BigDecimal(1)), "tax"));
+        when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(1), "tax"));
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
 
         assertThat(invoice.getItems()
@@ -87,7 +90,7 @@ public class BookKeeperTest {
     @Test
     public void testNumberOfCallsTaxCalculateForInvoiceRequestWithTwoProducts() {
         ProductData productData = productBuilder.addId(Id.generate())
-                                                .addPrice(new Money(new BigDecimal(1)))
+                                                .addPrice(new Money(1))
                                                 .addName("kabanos")
                                                 .addProductType(ProductType.FOOD)
                                                 .addSnapshotDate(new Date())
@@ -100,7 +103,7 @@ public class BookKeeperTest {
                                                 .createRequestItem();
 
         ProductData productData2 = productBuilder.addId(Id.generate())
-                                                 .addPrice(new Money(new BigDecimal(11)))
+                                                 .addPrice(new Money(11))
                                                  .addName("waciki")
                                                  .addProductType(ProductType.STANDARD)
                                                  .addSnapshotDate(new Date())
@@ -124,7 +127,7 @@ public class BookKeeperTest {
     @Test
     public void testInvoiceRequestWithTwoProductsReturnTwoProductsInvoice() {
         ProductData productData = productBuilder.addId(Id.generate())
-                                                .addPrice(new Money(new BigDecimal(1)))
+                                                .addPrice(new Money(1))
                                                 .addName("kabanos")
                                                 .addProductType(ProductType.FOOD)
                                                 .addSnapshotDate(new Date())
@@ -137,7 +140,7 @@ public class BookKeeperTest {
                                                 .createRequestItem();
 
         ProductData productData2 = productBuilder.addId(Id.generate())
-                                                 .addPrice(new Money(new BigDecimal(11)))
+                                                 .addPrice(new Money(11))
                                                  .addName("waciki")
                                                  .addProductType(ProductType.STANDARD)
                                                  .addSnapshotDate(new Date())
@@ -173,7 +176,7 @@ public class BookKeeperTest {
         ClientData client = new ClientData(Id.generate(), "Pepsi");
         invoiceRequest = new InvoiceRequest(client);
         ProductData productData = productBuilder.addId(Id.generate())
-                                                .addPrice(new Money(new BigDecimal(1)))
+                                                .addPrice(new Money(1))
                                                 .addName("kabanos")
                                                 .addProductType(ProductType.FOOD)
                                                 .addSnapshotDate(new Date())
