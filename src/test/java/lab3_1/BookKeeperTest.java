@@ -38,16 +38,19 @@ public class BookKeeperTest {
 
     private static ProductDataBuilder productBuilder;
     private static RequestItemBuilder requestBuilder;
+    private static BookKeeperBuilder bookKeeperBuilder;
 
     @BeforeClass
     public static void initialize() {
         productBuilder = new ProductDataBuilder();
         requestBuilder = new RequestItemBuilder();
+        bookKeeperBuilder = new BookKeeperBuilder();
     }
 
     @Before
     public void setUp() {
-        bookKeeper = new BookKeeper(new InvoiceFactory());
+        bookKeeper = bookKeeperBuilder.addInvoiceFactory(new InvoiceFactory())
+                                      .createBookKeeper();
         invoiceRequest = new InvoiceRequest(new ClientData());
         taxPolicy = mock(TaxPolicy.class);
     }
@@ -197,7 +200,8 @@ public class BookKeeperTest {
     @Test
     public void testIfMethodCreateFromInvoiceFactoryWasCalledOnce() {
         InvoiceFactory factory = mock(InvoiceFactory.class);
-        bookKeeper = new BookKeeper(factory);
+        bookKeeper = bookKeeperBuilder.addInvoiceFactory(factory)
+                                      .createBookKeeper();
         when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(new BigDecimal(1)), "tax"));
         bookKeeper.issuance(invoiceRequest, taxPolicy);
         verify(factory, times(1)).create(any());
