@@ -37,10 +37,12 @@ public class BookKeeperTest {
     private TaxPolicy taxPolicy;
 
     private static ProductDataBuilder productBuilder;
+    private static RequestItemBuilder requestBuilder;
 
     @BeforeClass
     public static void initialize() {
         productBuilder = new ProductDataBuilder();
+        requestBuilder = new RequestItemBuilder();
     }
 
     @Before
@@ -59,8 +61,12 @@ public class BookKeeperTest {
                                                 .addSnapshotDate(new Date())
                                                 .createProductData();
         int quantity = 10;
-        RequestItem requestItem = new RequestItem(productData, quantity, productData.getPrice()
-                                                                                    .multiplyBy(quantity));
+
+        RequestItem requestItem = requestBuilder.addProductData(productData)
+                                                .addQuantity(quantity)
+                                                .addTotalCost(productData.getPrice()
+                                                                         .multiplyBy(quantity))
+                                                .createRequestItem();
         invoiceRequest.add(requestItem);
 
         when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(new BigDecimal(1)), "tax"));
@@ -84,16 +90,25 @@ public class BookKeeperTest {
                                                 .addSnapshotDate(new Date())
                                                 .createProductData();
         int quantity = 10;
-        RequestItem requestItem = new RequestItem(productData, quantity, productData.getPrice()
-                                                                                    .multiplyBy(quantity));
+        RequestItem requestItem = requestBuilder.addProductData(productData)
+                                                .addQuantity(quantity)
+                                                .addTotalCost(productData.getPrice()
+                                                                         .multiplyBy(quantity))
+                                                .createRequestItem();
+
         ProductData productData2 = productBuilder.addId(Id.generate())
                                                  .addPrice(new Money(new BigDecimal(11)))
                                                  .addName("waciki")
                                                  .addProductType(ProductType.STANDARD)
                                                  .addSnapshotDate(new Date())
                                                  .createProductData();
-        RequestItem requestItem2 = new RequestItem(productData2, quantity - 2, productData.getPrice()
-                                                                                          .multiplyBy(quantity));
+
+        RequestItem requestItem2 = requestBuilder.addProductData(productData2)
+                                                 .addQuantity(quantity - 2)
+                                                 .addTotalCost(productData.getPrice()
+                                                                          .multiplyBy(quantity))
+                                                 .createRequestItem();
+
         invoiceRequest.add(requestItem);
         invoiceRequest.add(requestItem2);
 
@@ -112,16 +127,25 @@ public class BookKeeperTest {
                                                 .addSnapshotDate(new Date())
                                                 .createProductData();
         int quantity = 10;
-        RequestItem requestItem = new RequestItem(productData, quantity, productData.getPrice()
-                                                                                    .multiplyBy(quantity));
+        RequestItem requestItem = requestBuilder.addProductData(productData)
+                                                .addQuantity(quantity)
+                                                .addTotalCost(productData.getPrice()
+                                                                         .multiplyBy(quantity))
+                                                .createRequestItem();
+
         ProductData productData2 = productBuilder.addId(Id.generate())
                                                  .addPrice(new Money(new BigDecimal(11)))
                                                  .addName("waciki")
                                                  .addProductType(ProductType.STANDARD)
                                                  .addSnapshotDate(new Date())
                                                  .createProductData();
-        RequestItem requestItem2 = new RequestItem(productData2, quantity - 2, productData.getPrice()
-                                                                                          .multiplyBy(quantity));
+
+        RequestItem requestItem2 = requestBuilder.addProductData(productData2)
+                                                 .addQuantity(quantity - 2)
+                                                 .addTotalCost(productData.getPrice()
+                                                                          .multiplyBy(quantity))
+                                                 .createRequestItem();
+
         invoiceRequest.add(requestItem);
         invoiceRequest.add(requestItem2);
 
@@ -152,8 +176,11 @@ public class BookKeeperTest {
                                                 .addSnapshotDate(new Date())
                                                 .createProductData();
         int quantity = 10;
-        RequestItem requestItem = new RequestItem(productData, quantity, productData.getPrice()
-                                                                                    .multiplyBy(quantity));
+        RequestItem requestItem = requestBuilder.addProductData(productData)
+                                                .addQuantity(quantity)
+                                                .addTotalCost(productData.getPrice()
+                                                                         .multiplyBy(quantity))
+                                                .createRequestItem();
         invoiceRequest.add(requestItem);
 
         when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(new BigDecimal(1)), "tax"));

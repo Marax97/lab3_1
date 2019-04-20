@@ -1,6 +1,5 @@
 package lab3_1;
 
-import java.math.BigDecimal;
 import java.util.Date;
 
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
@@ -11,9 +10,9 @@ import pl.com.bottega.ecommerce.sharedkernel.Money;
 public class ProductDataBuilder {
 
     private Id productId = Id.generate();
-    private Money price = new Money(new BigDecimal(0));
+    private Money price = new Money(0);
 
-    private String name = "";
+    private String name = "none";
 
     private Date snapshotDate = new Date();
 
