@@ -44,10 +44,12 @@ public class AddProductCommandHandlerTest {
     private Client client;
 
     private static ReservationBuilder reservationBuilder;
+    private static ProductBuilder productBuilder;
 
     @BeforeClass
     public static void initialize() {
         reservationBuilder = new ReservationBuilder();
+        productBuilder = new ProductBuilder();
     }
 
     @Before
@@ -94,7 +96,11 @@ public class AddProductCommandHandlerTest {
                                                     .createReservation();
         when(reservationRepository.load(any(Id.class))).thenReturn(reservation);
 
-        Product product = new Product(Id.generate(), new Money(new BigDecimal(5)), "paluszki", ProductType.FOOD);
+        Product product = productBuilder.addPrice(new Money(5))
+                                        .addName("paluszki")
+                                        .addProductType(ProductType.FOOD)
+                                        .createProductData();
+
         when(productRepository.load(any(Id.class))).thenReturn(product);
 
         when(clientRepository.load(any(Id.class))).thenReturn(client);
@@ -111,13 +117,21 @@ public class AddProductCommandHandlerTest {
                                                     .createReservation();
         when(reservationRepository.load(any(Id.class))).thenReturn(reservation);
 
-        Product product = new Product(Id.generate(), new Money(new BigDecimal(5)), "paluszki", ProductType.FOOD);
+        Product product = productBuilder.addPrice(new Money(5))
+                                        .addName("paluszki")
+                                        .addProductType(ProductType.FOOD)
+                                        .createProductData();
+
         product.markAsRemoved();
         when(productRepository.load(any(Id.class))).thenReturn(product);
 
         when(clientRepository.load(any(Id.class))).thenReturn(client);
 
-        Product product2 = new Product(Id.generate(), new Money(new BigDecimal(50)), "pepsi", ProductType.STANDARD);
+        Product product2 = productBuilder.addPrice(new Money(50))
+                                         .addName("pepsi")
+                                         .addProductType(ProductType.STANDARD)
+                                         .createProductData();
+
         when(suggestionService.suggestEquivalent(any(Product.class), any(Client.class))).thenReturn(product2);
 
         productHandler.handle(productCommand);
@@ -131,14 +145,21 @@ public class AddProductCommandHandlerTest {
                                                     .addStatus(ReservationStatus.OPENED)
                                                     .createReservation();
         when(reservationRepository.load(any(Id.class))).thenReturn(reservation);
+        Product product = productBuilder.addPrice(new Money(5))
+                                        .addName("paluszki")
+                                        .addProductType(ProductType.FOOD)
+                                        .createProductData();
 
-        Product product = new Product(Id.generate(), new Money(new BigDecimal(5)), "paluszki", ProductType.FOOD);
         product.markAsRemoved();
         when(productRepository.load(any(Id.class))).thenReturn(product);
 
         when(clientRepository.load(any(Id.class))).thenReturn(client);
 
-        Product product2 = new Product(Id.generate(), new Money(new BigDecimal(50)), "pepsi", ProductType.STANDARD);
+        Product product2 = productBuilder.addPrice(new Money(50))
+                                         .addName("pepsi")
+                                         .addProductType(ProductType.STANDARD)
+                                         .createProductData();
+
         when(suggestionService.suggestEquivalent(any(Product.class), any(Client.class))).thenReturn(product2);
 
         productHandler.handle(productCommand);
