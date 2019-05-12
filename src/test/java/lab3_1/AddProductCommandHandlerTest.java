@@ -1,16 +1,11 @@
 package lab3_1;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.math.BigDecimal;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -34,6 +29,9 @@ import pl.com.bottega.ecommerce.system.application.SystemContext;
 
 public class AddProductCommandHandlerTest {
 
+    private static ReservationBuilder reservationBuilder;
+    private static ProductBuilder productBuilder;
+
     private AddProductCommandHandler productHandler;
     private ReservationRepository reservationRepository;
     private ProductRepository productRepository;
@@ -42,9 +40,8 @@ public class AddProductCommandHandlerTest {
     private SystemContext systemContext;
     private AddProductCommand productCommand;
     private Client client;
-
-    private static ReservationBuilder reservationBuilder;
-    private static ProductBuilder productBuilder;
+    private Reservation reservation;
+    private Product product;
 
     @BeforeClass
     public static void initialize() {
@@ -70,41 +67,45 @@ public class AddProductCommandHandlerTest {
         Whitebox.setInternalState(productHandler, "suggestionService", suggestionService);
         Whitebox.setInternalState(productHandler, "clientRepository", clientRepository);
         Whitebox.setInternalState(productHandler, "systemContext", systemContext);
+
+        initProductCommandData();
+    }
+
+    private void initProductCommandData() {
+        reservation = reservationBuilder.addId(Id.generate())
+                                        .addStatus(ReservationStatus.OPENED)
+                                        .createReservation();
+
+        product = productBuilder.addPrice(new Money(5))
+                                .addName("paluszki")
+                                .addProductType(ProductType.FOOD)
+                                .createProductData();
+
+        when(reservationRepository.load(any(Id.class))).thenReturn(reservation);
+        when(productRepository.load(any(Id.class))).thenReturn(product);
+        when(clientRepository.load(any(Id.class))).thenReturn(client);
+    }
+
+    private void suggestEquivalentProduct() {
+        product.markAsRemoved();
+        Product equivalent = productBuilder.addPrice(new Money(50))
+                                           .addName("pepsi")
+                                           .addProductType(ProductType.STANDARD)
+                                           .createProductData();
+
+        when(suggestionService.suggestEquivalent(any(Product.class), any(Client.class))).thenReturn(equivalent);
     }
 
     @Test
     public void testIfProductAndReservationRepositoriesWereCalledOnce() {
-        Reservation reservation = reservationBuilder.addId(Id.generate())
-                                                    .addStatus(ReservationStatus.OPENED)
-                                                    .createReservation();
-        when(reservationRepository.load(any(Id.class))).thenReturn(reservation);
-
-        Product product = new Product(Id.generate(), new Money(new BigDecimal(5)), "paluszki", ProductType.FOOD);
-        when(productRepository.load(any(Id.class))).thenReturn(product);
-
         productHandler.handle(productCommand);
         verify(reservationRepository, times(1)).load(any());
         verify(productRepository, times(1)).load(any());
         verify(reservationRepository, times(1)).save(any());
-        assertThat(true, is(equalTo(true)));
     }
 
     @Test
     public void testIfProductIsActiveClientWillNotBeCalled() {
-        Reservation reservation = reservationBuilder.addId(Id.generate())
-                                                    .addStatus(ReservationStatus.OPENED)
-                                                    .createReservation();
-        when(reservationRepository.load(any(Id.class))).thenReturn(reservation);
-
-        Product product = productBuilder.addPrice(new Money(5))
-                                        .addName("paluszki")
-                                        .addProductType(ProductType.FOOD)
-                                        .createProductData();
-
-        when(productRepository.load(any(Id.class))).thenReturn(product);
-
-        when(clientRepository.load(any(Id.class))).thenReturn(client);
-
         productHandler.handle(productCommand);
 
         verify(clientRepository, never()).load(any());
@@ -112,27 +113,7 @@ public class AddProductCommandHandlerTest {
 
     @Test
     public void testIfProductIsArchiveClientWillBeCalled() {
-        Reservation reservation = reservationBuilder.addId(Id.generate())
-                                                    .addStatus(ReservationStatus.OPENED)
-                                                    .createReservation();
-        when(reservationRepository.load(any(Id.class))).thenReturn(reservation);
-
-        Product product = productBuilder.addPrice(new Money(5))
-                                        .addName("paluszki")
-                                        .addProductType(ProductType.FOOD)
-                                        .createProductData();
-
-        product.markAsRemoved();
-        when(productRepository.load(any(Id.class))).thenReturn(product);
-
-        when(clientRepository.load(any(Id.class))).thenReturn(client);
-
-        Product product2 = productBuilder.addPrice(new Money(50))
-                                         .addName("pepsi")
-                                         .addProductType(ProductType.STANDARD)
-                                         .createProductData();
-
-        when(suggestionService.suggestEquivalent(any(Product.class), any(Client.class))).thenReturn(product2);
+        suggestEquivalentProduct();
 
         productHandler.handle(productCommand);
 
@@ -141,26 +122,7 @@ public class AddProductCommandHandlerTest {
 
     @Test
     public void testIfNewProductIsSuggestedIfOrderProductIsArchive() {
-        Reservation reservation = reservationBuilder.addId(Id.generate())
-                                                    .addStatus(ReservationStatus.OPENED)
-                                                    .createReservation();
-        when(reservationRepository.load(any(Id.class))).thenReturn(reservation);
-        Product product = productBuilder.addPrice(new Money(5))
-                                        .addName("paluszki")
-                                        .addProductType(ProductType.FOOD)
-                                        .createProductData();
-
-        product.markAsRemoved();
-        when(productRepository.load(any(Id.class))).thenReturn(product);
-
-        when(clientRepository.load(any(Id.class))).thenReturn(client);
-
-        Product product2 = productBuilder.addPrice(new Money(50))
-                                         .addName("pepsi")
-                                         .addProductType(ProductType.STANDARD)
-                                         .createProductData();
-
-        when(suggestionService.suggestEquivalent(any(Product.class), any(Client.class))).thenReturn(product2);
+        suggestEquivalentProduct();
 
         productHandler.handle(productCommand);
 

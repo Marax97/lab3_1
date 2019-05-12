@@ -35,6 +35,8 @@ public class BookKeeperTest {
     private BookKeeper bookKeeper;
     private InvoiceRequest invoiceRequest;
     private TaxPolicy taxPolicy;
+    private ProductData[] productData;
+    private RequestItem[] requestItem;
 
     private static ProductDataBuilder productBuilder;
     private static RequestItemBuilder requestBuilder;
@@ -56,24 +58,34 @@ public class BookKeeperTest {
         invoiceRequest = invoiceRequestBuilder.addClinet(new ClientData())
                                               .createInvoiceRequest();
         taxPolicy = mock(TaxPolicy.class);
+        productData = new ProductData[2];
+        requestItem = new RequestItem[2];
+    }
+
+    private void initInvoiceRequestData(int numberOfItems) {
+        for (int i = 0; i < numberOfItems; i++) {
+            productData[i] = productBuilder.addId(Id.generate())
+                                           .addPrice(new Money(1))
+                                           .addName("kabanos")
+                                           .addProductType(ProductType.FOOD)
+                                           .addSnapshotDate(new Date())
+                                           .createProductData();
+            int quantity = 10;
+
+            requestItem[i] = requestBuilder.addProductData(productData[i])
+                                           .addQuantity(quantity)
+                                           .addTotalCost(productData[i].getPrice()
+                                                                       .multiplyBy(quantity))
+                                           .createRequestItem();
+
+            invoiceRequest.add(requestItem[i]);
+        }
+
     }
 
     @Test
     public void testInvoiceRequestWithOneProductReturnOneProductInvoice() {
-        ProductData productData = productBuilder.addId(Id.generate())
-                                                .addPrice(new Money(1))
-                                                .addName("kabanos")
-                                                .addProductType(ProductType.FOOD)
-                                                .addSnapshotDate(new Date())
-                                                .createProductData();
-        int quantity = 10;
-
-        RequestItem requestItem = requestBuilder.addProductData(productData)
-                                                .addQuantity(quantity)
-                                                .addTotalCost(productData.getPrice()
-                                                                         .multiplyBy(quantity))
-                                                .createRequestItem();
-        invoiceRequest.add(requestItem);
+        initInvoiceRequestData(1);
 
         when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(1), "tax"));
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
@@ -84,39 +96,12 @@ public class BookKeeperTest {
         assertThat(invoice.getItems()
                           .get(0)
                           .getProduct(),
-                is(equalTo(productData)));
+                is(equalTo(productData[0])));
     }
 
     @Test
     public void testNumberOfCallsTaxCalculateForInvoiceRequestWithTwoProducts() {
-        ProductData productData = productBuilder.addId(Id.generate())
-                                                .addPrice(new Money(1))
-                                                .addName("kabanos")
-                                                .addProductType(ProductType.FOOD)
-                                                .addSnapshotDate(new Date())
-                                                .createProductData();
-        int quantity = 10;
-        RequestItem requestItem = requestBuilder.addProductData(productData)
-                                                .addQuantity(quantity)
-                                                .addTotalCost(productData.getPrice()
-                                                                         .multiplyBy(quantity))
-                                                .createRequestItem();
-
-        ProductData productData2 = productBuilder.addId(Id.generate())
-                                                 .addPrice(new Money(11))
-                                                 .addName("waciki")
-                                                 .addProductType(ProductType.STANDARD)
-                                                 .addSnapshotDate(new Date())
-                                                 .createProductData();
-
-        RequestItem requestItem2 = requestBuilder.addProductData(productData2)
-                                                 .addQuantity(quantity - 2)
-                                                 .addTotalCost(productData.getPrice()
-                                                                          .multiplyBy(quantity))
-                                                 .createRequestItem();
-
-        invoiceRequest.add(requestItem);
-        invoiceRequest.add(requestItem2);
+        initInvoiceRequestData(2);
 
         when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(new BigDecimal(1)), "tax"));
         bookKeeper.issuance(invoiceRequest, taxPolicy);
@@ -126,34 +111,7 @@ public class BookKeeperTest {
 
     @Test
     public void testInvoiceRequestWithTwoProductsReturnTwoProductsInvoice() {
-        ProductData productData = productBuilder.addId(Id.generate())
-                                                .addPrice(new Money(1))
-                                                .addName("kabanos")
-                                                .addProductType(ProductType.FOOD)
-                                                .addSnapshotDate(new Date())
-                                                .createProductData();
-        int quantity = 10;
-        RequestItem requestItem = requestBuilder.addProductData(productData)
-                                                .addQuantity(quantity)
-                                                .addTotalCost(productData.getPrice()
-                                                                         .multiplyBy(quantity))
-                                                .createRequestItem();
-
-        ProductData productData2 = productBuilder.addId(Id.generate())
-                                                 .addPrice(new Money(11))
-                                                 .addName("waciki")
-                                                 .addProductType(ProductType.STANDARD)
-                                                 .addSnapshotDate(new Date())
-                                                 .createProductData();
-
-        RequestItem requestItem2 = requestBuilder.addProductData(productData2)
-                                                 .addQuantity(quantity - 2)
-                                                 .addTotalCost(productData.getPrice()
-                                                                          .multiplyBy(quantity))
-                                                 .createRequestItem();
-
-        invoiceRequest.add(requestItem);
-        invoiceRequest.add(requestItem2);
+        initInvoiceRequestData(2);
 
         when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(new BigDecimal(1)), "tax"));
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
@@ -164,30 +122,18 @@ public class BookKeeperTest {
         assertThat(invoice.getItems()
                           .get(0)
                           .getProduct(),
-                is(equalTo(productData)));
+                is(equalTo(productData[0])));
         assertThat(invoice.getItems()
                           .get(1)
                           .getProduct(),
-                is(equalTo(productData2)));
+                is(equalTo(productData[1])));
     }
 
     @Test
     public void testClientDataPassedToInvoice() {
         ClientData client = new ClientData(Id.generate(), "Pepsi");
         invoiceRequest = new InvoiceRequest(client);
-        ProductData productData = productBuilder.addId(Id.generate())
-                                                .addPrice(new Money(1))
-                                                .addName("kabanos")
-                                                .addProductType(ProductType.FOOD)
-                                                .addSnapshotDate(new Date())
-                                                .createProductData();
-        int quantity = 10;
-        RequestItem requestItem = requestBuilder.addProductData(productData)
-                                                .addQuantity(quantity)
-                                                .addTotalCost(productData.getPrice()
-                                                                         .multiplyBy(quantity))
-                                                .createRequestItem();
-        invoiceRequest.add(requestItem);
+        initInvoiceRequestData(1);
 
         when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(new BigDecimal(1)), "tax"));
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
